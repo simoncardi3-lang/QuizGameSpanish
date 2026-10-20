@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>QUIZ CHAOS</title>
+<style>
+:root{--p:#151c36;--p2:#232e57;--tx:#eef1ff;--o:#ff9f1c}
+*{box-sizing:border-box;margin:0}
+body{background:radial-gradient(circle at 50% 0,#1a2552,#0b1020 65%) fixed;color:var(--tx);font:16px/1.4 system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+#app{max-width:1000px;margin:auto;padding:10px}
+h1{font:900 clamp(2.4rem,10vw,5rem)/1 "Arial Black",Impact,sans-serif;text-align:center;margin:16px 0 6px}
+h2{font-size:1.4rem}.sub{text-align:center;opacity:.85;margin-bottom:12px}
+.btn{min-height:48px;padding:10px 16px;border:0;border-bottom:4px solid #0007;border-radius:14px;background:var(--p2);color:var(--tx);font:700 1rem system-ui;cursor:pointer}
+.btn:hover:not(:disabled){filter:brightness(1.25)}.btn:disabled{opacity:.4;cursor:default}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.pri{background:var(--o);color:#111}.on{background:#3ddc97;color:#06231a}
+.col{display:flex;flex-direction:column;gap:10px;max-width:420px;margin:12px auto}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:8px 0}
+.card{background:var(--p);border-radius:18px;padding:16px;margin:10px 0}.card p{margin:6px 0}
+.nms{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+input[type=text]{width:100%;padding:12px;border-radius:10px;border:3px solid var(--c,#667);background:#0b1020;color:#fff;font:700 1rem system-ui}
+.pv{display:flex;justify-content:center;gap:14px;margin:14px 0}
+.pv i{width:56px;height:56px;border-radius:50%;background:var(--c);animation:pu 1.6s infinite var(--d);box-shadow:0 0 20px var(--c)}
+@keyframes pu{50%{transform:scale(1.22);filter:brightness(1.4)}}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.q{background:#f4f6ff;color:#0e1330;border-radius:20px;padding:14px;text-align:center;box-shadow:0 8px 30px #0008}
+.tag{display:inline-block;background:#0e1330;color:#fff;border-radius:99px;padding:3px 12px;margin:2px;font-size:.85rem;font-weight:700}.tag.ev{background:#7b1fa2}
+.qt{font-size:clamp(1.2rem,4.6vw,2rem);margin:10px 0;line-height:1.2}.ln{font-size:1.15rem;margin:6px 0}
+.tm{height:12px;background:#cfd6f5;border-radius:9px;overflow:hidden;margin:8px 0}
+.tm i{display:block;height:100%;width:100%;background:#2e7d32}.tm i.lo{background:#d32f2f}
+.ans{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.a{min-height:56px;padding:8px;border-radius:12px;border:3px solid #0e1330;background:#fff;color:#0e1330;font:700 clamp(1rem,3.6vw,1.3rem) system-ui;cursor:pointer}
+.a:disabled{cursor:default}.a.ok{background:#2e9b3e;color:#fff}.a.no{background:#d32f2f;color:#fff}.a.dead{opacity:.4;text-decoration:line-through}
+.bd{font-size:.95rem;text-align:left;margin:8px auto;max-width:520px}
+.pls{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.pl{background:var(--p);border:3px solid var(--c);border-radius:16px;padding:8px;text-align:center;min-width:0}
+.pl.act{box-shadow:0 0 22px var(--c);background:#2a3768}
+.pl .sc{font:900 1.8rem "Arial Black",sans-serif}.blk .sc{filter:blur(9px)}
+.pl b,.pl small{display:block;overflow:hidden;text-overflow:ellipsis}.pl small{opacity:.85}
+.bz{width:100%;min-height:46px;border:0;border-radius:12px;background:var(--c);color:#111;font:900 1rem system-ui;cursor:pointer}
+.bz:disabled{opacity:.45;cursor:default}.bz.sel{outline:3px solid #fff;outline-offset:2px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.chip{min-height:36px;min-width:36px;border:2px solid var(--tx);border-radius:10px;background:#0b1020;color:var(--tx);font-weight:700;margin:2px;cursor:pointer}
+.chip:disabled{opacity:.4}
+.sw{overflow-x:auto}table{border-collapse:collapse;width:100%;font-size:.9rem}td,th{padding:6px;border-bottom:1px solid #fff3;text-align:center}
+.tro{font-size:3.5rem;display:inline-block;animation:pu 1.2s infinite}
+.rm *{animation:none!important;transition:none!important}
+@media(max-width:640px){.nms,.pls{grid-template-columns:1fr 1fr}}
+</style></head><body><main id="app"></main>
+<script>
+const $=s=>document.querySelector(s),A=$('#app');
+const COL=['#e53935','#1e88e5','#43a047','#fdd835'],SH=['●','■','▲','◆'];
+const CATS=['Ciencia','Geografía','Historia','Matemáticas','Naturaleza','Tecnología','Deportes','Literatura','Arte','General','Lógica'];
+const RN=['Relámpago','Ronda de Riesgo','Ronda del Caos','Ronda de Robo','Gran Final'];
+const RR=['Pulsa primero para responder: +100 si aciertas, penalización si fallas.','Apuesta puntos antes. Todos responden; si aciertas ganas tu apuesta y si fallas la pierdes.','Todos responden y un evento aleatorio cambia las reglas de cada pregunta.','Pulsa primero. Si alguien falla, los demás pueden robar por +75, un intento cada uno.','Todos responden por doble valor tras apostar hasta 200. Los empates se definen en muerte súbita.'];
+const EV=[{id:'dbl',n:'Puntos dobles',d:'Las respuestas correctas valen ×2.'},{id:'rev',n:'Bono inverso',d:'Quien tenga menos puntos recibe +50 si acierta.'},{id:'spd',n:'Frenesí de velocidad',d:'Solo 6 segundos, pero acertar da +50.'},{id:'blk',n:'Apagón',d:'Los puntajes se ocultan hasta la revelación.'},{id:'jck',n:'Premio gordo',d:'Acierto: +250. Fallo: −75.'},{id:'mys',n:'Bono misterioso',d:'Los aciertos reciben un +10 a +50 aleatorio tras la revelación.'}];
+const PN={sh:['🛡','Escudo','Bloquea una penalización en esta pregunta'],dbl:['×2','Doble','Duplica una respuesta correcta en esta pregunta']};
+const ACH=[['Primera Victoria','Gana una partida.'],['Ronda Perfecta','Acierta todas las preguntas de una ronda.'],['Remontada','Gana tras ir en último lugar al final de una ronda.'],['Amante del Riesgo','Acierta con una apuesta de 100 o más.'],['Maestro del Robo','Logra 3 o más robos exitosos en una partida.'],['Superviviente del Caos','Falla una pregunta de Premio gordo y aun así termina con puntos positivos.']];
+/* Question bank: Category|Difficulty|Question|correct answer first|other answers (shuffled at runtime) */
+const Q=`Ciencia|1|¿Qué gas absorben las plantas del aire?|Dióxido de carbono|Oxígeno|Nitrógeno|Helio
+Geografía|1|¿Cuál es la capital de Francia?|París|Roma|Madrid|Berlín
+Geografía|1|¿Cuál es el océano más grande?|Pacífico|Atlántico|Índico|Ártico
+Matemáticas|1|¿Cuánto es 12 × 12?|144|124|132|148
+Naturaleza|1|¿Cuántas patas tiene una araña?|8|6|10|4
+Deportes|1|¿Cuántos jugadores por equipo hay en el campo en un partido de fútbol?|11|9|10|12
+Literatura|1|¿Quién escribió Romeo y Julieta?|William Shakespeare|Charles Dickens|Mark Twain|Jane Austen
+Arte|1|¿Qué color se obtiene al mezclar azul y amarillo?|Verde|Morado|Naranja|Marrón
+Tecnología|1|¿Qué significan las siglas CPU?|Unidad Central de Procesamiento|Unidad Personal de Computadora|Utilidad Central de Programas|Unidad de Energía del Núcleo
+Historia|1|¿Qué civilización construyó las pirámides de Giza?|Los antiguos egipcios|Los romanos|Los aztecas|Los griegos
+General|1|¿Cuántos días tiene un año bisiesto?|366|365|364|367
+Ciencia|1|¿Cómo se conoce comúnmente al H2O?|Agua|Sal|Hidrógeno|Peróxido
+General|1|Verdadero o falso: el tomate es botánicamente una fruta.|Verdadero|Falso
+Geografía|2|¿Cuál es el río más largo de Sudamérica?|Amazonas|Orinoco|Paraná|Magdalena
+Ciencia|2|¿Cuál es el símbolo químico del oro?|Au|Ag|Gd|Go
+Historia|2|¿En qué año terminó la Segunda Guerra Mundial?|1945|1943|1939|1950
+Matemáticas|2|¿Cuál es la raíz cuadrada de 169?|13|12|14|11
+Naturaleza|2|¿Cuál es el mamífero más grande de la Tierra?|Ballena azul|Elefante africano|Jirafa|Orca
+Tecnología|2|¿A quién se le atribuye la invención de la World Wide Web?|Tim Berners-Lee|Bill Gates|Steve Jobs|Alan Turing
+Deportes|2|¿En qué país se celebraron los primeros Juegos Olímpicos modernos, en 1896?|Grecia|Francia|Italia|Inglaterra
+Literatura|2|¿Quién escribió Cien años de soledad?|Gabriel García Márquez|Jorge Luis Borges|Pablo Neruda|Mario Vargas Llosa
+Arte|2|¿Quién pintó la Mona Lisa?|Leonardo da Vinci|Miguel Ángel|Rafael|Botticelli
+General|2|¿Cuántos continentes hay?|7|6|5|8
+Ciencia|2|¿A qué velocidad viaja la luz, aproximadamente?|300.000 km/s|150.000 km/s|30.000 km/s|3.000.000 km/s
+Lógica|2|¿Qué número sigue: 2, 4, 8, 16, ...?|32|24|30|34
+Ciencia|2|Verdadero o falso: el sonido viaja más rápido en el agua que en el aire.|Verdadero|Falso
+Matemáticas|3|¿Cuánto suman los ángulos interiores de un hexágono?|720°|540°|900°|360°
+Ciencia|3|¿Qué partícula del átomo tiene carga negativa?|Electrón|Protón|Neutrón|Fotón
+Historia|3|¿Quién fue el primer emperador de Roma?|Augusto|Julio César|Nerón|Constantino
+Geografía|3|¿Cuál es la capital de Australia?|Canberra|Sídney|Melbourne|Perth
+Naturaleza|3|¿Cuántos corazones tiene un pulpo?|3|2|1|8
+Tecnología|3|¿Qué significan las siglas HTTP?|HyperText Transfer Protocol|High Transfer Text Protocol|HyperText Transmission Process|Host Transfer Terminal Protocol
+Deportes|3|¿Qué país ganó el primer Mundial de fútbol de la FIFA, en 1930?|Uruguay|Brasil|Argentina|Italia
+Literatura|3|¿Quién escribió Don Quijote de la Mancha?|Miguel de Cervantes|Lope de Vega|Dante Alighieri|Homero
+Arte|3|¿Qué pintor se cortó parte de su propia oreja?|Vincent van Gogh|Pablo Picasso|Claude Monet|Salvador Dalí
+General|3|¿Cuál es el número primo más pequeño?|2|1|3|0
+Lógica|3|3 máquinas hacen 3 piezas en 3 minutos. ¿Cuánto tardan 100 máquinas en hacer 100 piezas?|3 minutos|100 minutos|33 minutos|1 minuto
+Matemáticas|3|¿Cuánto es el 15 % de 240?|36|32|38|24`.split('\n').map((s,i)=>{const[c,d,q,...a]=s.split('|');return{id:i,c,d:+d,q,a}});
+const FB={c:'General',q:'¿Cuánto es 2 + 2?',a:['4','3','5','22']};
+const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
+const sh=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const ld=(k,d)=>{try{const v=JSON.parse(localStorage[k]);return v&&typeof v=='object'?{...d,...v}:d}catch{return d}};
+const sv=(k,v)=>{try{localStorage[k]=JSON.stringify(v)}catch{}};
+let cfg=ld('qc_cfg_es',{names:['Jugador 1','Jugador 2','Jugador 3','Jugador 4'],diff:2,len:15,ev:1,pu:1,snd:1,vol:.5,rm:0,win:5,pen:25,keys:['a','f','j','l'],cats:CATS});
+if(!Array.isArray(cfg.names)||cfg.names.length!=4)cfg.names=['Jugador 1','Jugador 2','Jugador 3','Jugador 4'];
+cfg.names=cfg.names.map((n,i)=>String(n).trim().slice(0,12)||'Jugador '+(i+1));
+if(!Array.isArray(cfg.keys)||cfg.keys.length!=4||new Set(cfg.keys).size<4)cfg.keys=['a','f','j','l'];
+cfg.cats=Array.isArray(cfg.cats)?cfg.cats.filter(c=>CATS.includes(c)):CATS;if(!cfg.cats.length)cfg.cats=CATS;
+if(![10,15,20].includes(cfg.len))cfg.len=15;
+const DS={m:0,w:[0,0,0,0],ok:0,an:0,best:0,st:0,rp:0,rw:0,pu:0,cb:0,bs:0,cs:0,la:-1,ach:{}};
+function stats(){const S=ld('qc_st_es',DS);for(const k in DS)if(k!='w'&&k!='ach')S[k]=+S[k]||0;if(!Array.isArray(S.w)||S.w.length!=4)S.w=[0,0,0,0];S.w=S.w.map(x=>+x||0);if(!S.ach||typeof S.ach!='object')S.ach={};return S}
+/* sound */
+let ac;const snd=(f,d=.15,t='square')=>{if(!cfg.snd)return;try{ac=ac||new AudioContext();const o=ac.createOscillator(),g=ac.createGain();o.type=t;o.frequency.value=f;g.gain.value=.15*cfg.vol;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+d)}catch{}};
+/* state machine */
+const TR={MENU:['SETUP'],SETUP:['ROUND_INTRO'],ROUND_INTRO:['QUESTION_READY'],QUESTION_READY:['BUZZER_OPEN','ANSWERING'],BUZZER_OPEN:['ANSWERING','REVEAL','PAUSED'],ANSWERING:['BUZZER_OPEN','REVEAL','PAUSED'],REVEAL:['QUESTION_READY','ROUND_RESULTS','MATCH_RESULTS'],ROUND_RESULTS:['ROUND_INTRO','QUESTION_READY','MATCH_RESULTS'],PAUSED:['BUZZER_OPEN','ANSWERING'],MATCH_RESULTS:['ROUND_INTRO']};
+let st='MENU',V='menu',G=null;
+const go=s=>{if((TR[st]||[]).includes(s)){st=s;return 1}console.warn('Blocked',st,'→',s)};
+/* timer: timestamp based, id-guarded so stale callbacks never fire */
+const T={id:0,run:0};
+function loop(id){if(!T.run||T.id!==id)return;const l=T.end-performance.now(),b=$('#bar');
+ if(b){b.style.width=Math.max(0,l/T.dur*100)+'%';b.className=l<2500?'lo':''}
+ if(l<2500&&!T.w){T.w=1;snd(300,.12)}
+ if(l<=0){T.run=0;const c=T.cb;T.cb=null;c&&c()}else requestAnimationFrame(()=>loop(id))}
+function tStart(ms,cb){T.dur=ms;T.end=performance.now()+ms;T.cb=cb;T.w=0;T.run=1;loop(++T.id)}
+function tStop(){T.run=0;T.cb=null;T.id++}
+function tPause(){T.left=T.end-performance.now();T.run=0;T.id++}
+function tResume(){T.end=performance.now()+T.left;T.run=1;loop(++T.id)}
+const frac=()=>Math.max(0,Math.min(1,(T.end-performance.now())/T.dur));
+/* match setup */
+function mk(same){
+ let qs;if(same&&G)qs=G.qs;else{const pool=Q.filter(x=>cfg.cats.includes(x.c)),rest=Q.filter(x=>!pool.includes(x));
+  qs=[...sh(pool.filter(x=>x.d==cfg.diff)),...sh(pool.filter(x=>x.d!=cfg.diff)).sort((a,b)=>Math.abs(a.d-cfg.diff)-Math.abs(b.d-cfg.diff)),...sh(rest)].slice(0,cfg.len+3)}
+ tStop();st='SETUP';V='game';
+ G={nm:[...cfg.names],sc:[0,0,0,0],pu:[[],[],[],[]],st:[0,1,2,3].map(()=>({ok:0,bad:0,steal:0,pu:0,bon:0,pen:0,rp:0,rw:0})),qs,qi:0,r:0,per:cfg.len/5,tok:0,tbn:0,wl:[0,0,0,0],jw:[0,0,0,0],rok:[0,0,0,0],ach:[]};
+ snd(520,.3);intro()}
+function intro(){G.r=Math.floor(G.qi/G.per);G.rok=[0,0,0,0];go('ROUND_INTRO');draw()}
+function startQ(){
+ G.tok++;const raw=(G.tb?G.qs[cfg.len+G.tbn]:G.qs[G.qi])||FB;
+ const ok=raw.a&&raw.a.length>=2&&new Set(raw.a).size==raw.a.length;const r0=ok?raw:FB;
+ G.q={c:r0.c,q:r0.q,o:sh(r0.a)};G.q.ok=G.q.o.indexOf(r0.a[0]);
+ const r=G.r;G.tried=[];G.cur=-1;G.ans={};G.bd=[];G.dead=[];G.bq=null;G.locked=0;G.arm=[{},{},{},{}];G.wg=[0,0,0,0];G.flash=[0,0,0,0];
+ G.mode=!G.tb&&(r==0||r==3)?'buzz':'all';G.wag=!G.tb&&(r==1||r==4);
+ G.ev=!G.tb&&r==2&&cfg.ev?EV[Math.random()*EV.length|0]:null;
+ const mn=Math.min(...G.sc);G.low=G.sc.map(s=>s==mn);
+ go('QUESTION_READY');if(G.wag||G.ev){snd(440);draw()}else openQ()}
+function openQ(){if(st!='QUESTION_READY')return;
+ if(G.mode=='buzz'){go('BUZZER_OPEN');tStart(10000,reveal)}
+ else{go('ANSWERING');tStart(G.ev&&G.ev.id=='spd'?6000:12000,reveal)}
+ snd(700);draw()}
+/* buzzer: presses within 40 ms are collected; earliest timestamp wins, ties (≤5 ms) go to the lower score, then lower seat */
+function buzz(p,ts){if(st!='BUZZER_OPEN'||G.tried.includes(p))return;const g=G,k=g.tok;
+ if(g.bq){if(!g.bq.some(x=>x.p==p))g.bq.push({p,ts});return}
+ g.bq=[{p,ts}];setTimeout(()=>{if(G!==g||g.tok!=k||st!='BUZZER_OPEN'||!g.bq)return;
+  const q=g.bq.sort((a,b)=>a.ts-b.ts),m=q[0].ts,c=q.filter(x=>x.ts-m<=5).sort((a,b)=>g.sc[a.p]-g.sc[b.p]||a.p-b.p);
+  g.bq=null;g.cur=c[0].p;g.locked=0;go('ANSWERING');tStart(cfg.win*1000,()=>judge(g.cur,-1));snd(660);draw()},40)}
+function pick(i){if(st!='ANSWERING'||G.mode!='buzz'||G.cur<0||G.locked||G.dead.includes(i)||i>=G.q.o.length)return;G.locked=1;judge(G.cur,i)}
+function judge(p,i){const f=i<0?0:frac();tStop();const ok=i==G.q.ok,steal=G.tried.length>0;G.tried.push(p);
+ if(i<0)G.bd.push(G.nm[p]+': se acabó el tiempo, 0');else calc(p,ok,f,steal?'steal':'n');
+ snd(ok?880:200,.25);
+ if(ok||G.r!=3||G.tried.length>=4)return reveal();
+ if(i>=0)G.dead.push(i);G.cur=-1;G.locked=0;go('BUZZER_OPEN');tStart(5000,reveal);draw()}
+function ansP(p,i){if(st!='ANSWERING'||G.mode!='all'||G.ans[p]||(G.tb&&!G.el.includes(p)))return;
+ G.ans[p]={i,f:frac()};snd(600,.08);
+ if((G.tb?G.el:[0,1,2,3]).every(x=>G.ans[x]))reveal();else draw()}
+/* scoring: each change applied once; multipliers (event × Double) multiply; shield applies before penalties */
+function calc(p,ok,f,kind){const s=G.st[p],ar=G.arm[p],ev=G.ev?G.ev.id:'',P=[];let d=0;
+ if(G.r==1&&!G.tb)s.rp++;
+ if(ok){let b=kind=='steal'?75:G.wag?G.wg[p]:ev=='jck'?250:G.tb?100:G.r==4?200:100;P.push('+'+b);
+  const m=(ev=='dbl'?2:1)*(ar.dbl?2:1);if(m>1)P.push('×'+m);d=b*m;
+  const add=(n,l)=>{d+=n;s.bon+=n;P.push('+'+n+' '+l)};
+  if(!G.wag){const sp=Math.round(25*f);if(sp)add(sp,'velocidad')}
+  if(ev=='rev'&&G.low[p])add(50,'bono inverso');if(ev=='spd')add(50,'frenesí');if(ev=='mys')add([10,20,30,40,50][Math.random()*5|0],'misterio');
+  s.ok++;G.rok[p]++;if(kind=='steal')s.steal++;if(G.wag&&G.wg[p]>=100)G.risk=1;if(G.r==1&&!G.tb)s.rw++}
+ else{let pn=G.tb?0:G.wag?G.wg[p]:ev=='jck'?75:cfg.pen;if(ev=='jck')G.jw[p]=1;
+  if(ar.sh&&pn){P.push('Escudo bloquea −'+pn);pn=0}else P.push(pn?'−'+pn:'incorrecta, sin penalización');
+  d=-pn;s.pen+=pn;s.bad++}
+ G.sc[p]+=d;G.flash[p]=d;G.bd.push(G.nm[p]+': '+P.join(' ')+' = '+(d>0?'+':'')+d)}
+function reveal(){if(!(TR[st]||[]).includes('REVEAL'))return;tStop();
+ if(G.mode=='all')(G.tb?G.el:[0,1,2,3]).forEach(p=>{const a=G.ans[p];if(a)calc(p,a.i===G.q.ok,a.f,'all');else G.bd.push(G.nm[p]+': sin respuesta, 0')});
+ else if(!G.tried.length)G.bd.push('Nadie pulsó. Sin puntos.');
+ go('REVEAL');draw()}
+function nxt(){
+ if(st=='ROUND_INTRO')return startQ();
+ if(st=='QUESTION_READY')return openQ();
+ if(st=='ROUND_RESULTS')return G.qi>=cfg.len?tieOrEnd():intro();
+ if(st=='REVEAL'){if(G.tb){G.tbn++;return tieOrEnd()}
+  G.qi++;if(G.qi%G.per)return startQ();
+  const mn=Math.min(...G.sc);G.sc.forEach((s,p)=>{if(s==mn)G.wl[p]=1;if(G.rok[p]==G.per)G.perf=1});
+  if(cfg.pu&&G.qi<cfg.len)G.sc.forEach((s,p)=>{if(s==mn&&G.pu[p].length<2)G.pu[p].push(Math.random()<.5?'sh':'dbl')});
+  go('ROUND_RESULTS');draw()}}
+function tieOrEnd(){const mx=Math.max(...G.sc),t=G.sc.map((s,i)=>s==mx?i:-1).filter(i=>i>=0);
+ if(t.length>1&&G.tbn<3){G.tb=1;G.el=t;G.r=4;return startQ()}fin()}
+function fin(){if(G.done)return;G.done=1;go('MATCH_RESULTS');tStop();
+ const S=stats(),mx=Math.max(...G.sc),w=G.sc.map((s,i)=>s==mx?i:-1).filter(i=>i>=0),got=[];
+ const t=(n,c)=>{if(c){got.push(n);S.ach[n]=1}};
+ S.m++;w.forEach(i=>S.w[i]++);G.st.forEach(x=>{S.ok+=x.ok;S.an+=x.ok+x.bad;S.st+=x.steal;S.rp+=x.rp;S.rw+=x.rw;S.pu+=x.pu});
+ S.best=Math.max(S.best,mx);const cb=w.length==1&&G.wl[w[0]];if(cb)S.cb++;
+ if(w.length==1){S.cs=S.la==w[0]?S.cs+1:1;S.la=w[0];S.bs=Math.max(S.bs,S.cs)}else{S.cs=0;S.la=-1}
+ t('Primera Victoria',w.length==1);t('Ronda Perfecta',G.perf);t('Remontada',cb);t('Amante del Riesgo',G.risk);
+ t('Maestro del Robo',G.st.some(x=>x.steal>=3));t('Superviviente del Caos',G.jw.some((j,p)=>j&&G.sc[p]>0));
+ G.ach=got;sv('qc_st_es',S);snd(784,.5,'triangle');draw()}
+function pauseG(){if(st!='BUZZER_OPEN'&&st!='ANSWERING')return;tPause();G.ps=st;G.bq=null;go('PAUSED');draw()}
+function resumeG(){if(st!='PAUSED'||!go(G.ps))return;tResume();draw()}
+function canPu(p){return['QUESTION_READY','BUZZER_OPEN','ANSWERING'].includes(st)&&!G.ans[p]&&!G.tried.includes(p)&&!G.tb}
+/* views */
+const rk=()=>G.sc.map(s=>1+G.sc.filter(x=>x>s).length);
+const bk='<button class="btn" data-a="v" data-v="menu">◀ Menú</button>';
+const tg=(k,l)=>`<button class="btn ${cfg[k]?'on':''}" data-a="tg" data-k="${k}" aria-pressed="${!!cfg[k]}">${l}: ${cfg[k]?'SÍ':'NO'}</button>`;
+const grp=(k,vs,ls)=>vs.map((v,i)=>`<button class="btn ${cfg[k]==v?'on':''}" data-a="set" data-k="${k}" data-v="${v}" aria-pressed="${cfg[k]==v}">${ls[i]}</button>`).join('');
+const catsH=()=>`<div class="row">${CATS.map(c=>`<button class="btn ${cfg.cats.includes(c)?'on':''}" data-a="cat" data-v="${c}" aria-pressed="${cfg.cats.includes(c)}">${c}</button>`).join('')}</div>`;
+const VW={
+menu:()=>`<h1>QUIZ<br>${[...'CHAOS'].map((c,i)=>`<span style="color:${COL[i%4]}">${c}</span>`).join('')}</h1><p class="sub">Cuatro jugadores. Un dispositivo. Caos total de preguntas.</p>
+<div class="pv">${COL.map((c,i)=>`<i style="--c:${c};--d:${i*.4}s"></i>`).join('')}</div>
+<div class="col"><button class="btn pri" data-a="v" data-v="setup">▶ Jugar</button><button class="btn" data-a="v" data-v="modes">Modos de juego</button><button class="btn" data-a="v" data-v="cats">Categorías</button><button class="btn" data-a="v" data-v="how">Cómo jugar</button><button class="btn" data-a="v" data-v="stats">Estadísticas</button><button class="btn" data-a="v" data-v="set">Ajustes</button></div>`,
+setup:()=>`<h1 style="font-size:2.2rem">Configurar partida</h1><div class="card"><h2>Jugadores</h2><div class="nms">${cfg.names.map((n,i)=>`<label><span style="color:${COL[i]}">${SH[i]} Jugador ${i+1}</span><input type="text" id="n${i}" maxlength="12" value="${esc(n)}" style="--c:${COL[i]}" aria-label="Nombre del jugador ${i+1}"></label>`).join('')}</div>
+<h2 style="margin-top:12px">Dificultad</h2><div class="row">${grp('diff',[1,2,3],['Fácil','Normal','Difícil'])}</div>
+<h2>Preguntas</h2><div class="row">${grp('len',[10,15,20],['10','15','20'])}</div>
+<div class="row">${tg('ev','Eventos de caos')}${tg('pu','Poderes')}${tg('snd','Sonido')}${tg('rm','Movimiento reducido')}</div>
+<h2>Categorías</h2>${catsH()}</div><div class="row">${bk}<button class="btn pri" data-a="play">Iniciar partida ▶</button></div>`,
+modes:()=>`<h1 style="font-size:2.2rem">Modos de juego</h1><div class="card">${RN.map((n,i)=>`<p><b>${i+1}. ${n}</b><br>${RR[i]}</p>`).join('')}</div><div class="row">${bk}</div>`,
+cats:()=>`<h1 style="font-size:2.2rem">Categorías</h1><p class="sub">Las preguntas salen solo de las categorías activadas.</p>${catsH()}<div class="row">${bk}</div>`,
+how:()=>`<h1 style="font-size:2.2rem">Cómo jugar</h1><div class="card"><p><b>Rondas de pulsador</b> (Relámpago y Robo): pulsa tu tecla (por defecto A, F, J, L) o toca tu pulsador. El primero en pulsar responde tocando una opción o con las teclas 1–4. En la Ronda de Robo, si falla, los demás pueden robar por +75, un intento cada uno.</p><p><b>Rondas donde todos juegan</b> (Riesgo, Caos y Final): todos tocan sus propios botones 1–4. Las respuestas se bloquean al instante y quedan ocultas hasta la revelación. Acertar más rápido da hasta +25.</p><p><b>Apuestas</b>: en las rondas de Riesgo y Final. Elige una apuesta que puedas pagar. Si aciertas la ganas; si fallas, la pierdes.</p><p><b>Poderes</b>: 🛡 Escudo bloquea una penalización y ×2 Doble duplica una respuesta correcta. Se gastan al activarlos, en la pregunta actual. Quien tenga menos puntos recibe uno al final de cada ronda. Máximo 2.</p><p><b>Teclas</b>: P o Esc pausa. Espacio o Enter continúa. El juego se pausa si la pestaña se oculta.</p></div><div class="row">${bk}</div>`,
+set:()=>`<h1 style="font-size:2.2rem">Ajustes</h1><div class="card"><div class="row">${tg('snd','Sonido')}${tg('rm','Movimiento reducido')}</div><div class="row"><label>Volumen <input type="range" min="0" max="1" step=".1" value="${cfg.vol}" id="vol"></label></div>
+<h2>Tiempo de respuesta</h2><div class="row">${grp('win',[3,5,8,10],['3s','5s','8s','10s'])}</div><h2>Penalización por error</h2><div class="row">${grp('pen',[0,25,50],['0','−25','−50'])}</div>
+<h2>Teclas de pulsador</h2><div class="nms">${cfg.keys.map((k,i)=>`<label><span style="color:${COL[i]}">${SH[i]} Jugador ${i+1}</span><input type="text" class="ky" data-i="${i}" maxlength="1" value="${esc(k)}" style="--c:${COL[i]}" aria-label="Tecla de pulsador del jugador ${i+1}"></label>`).join('')}</div></div><div class="row">${bk}</div>`,
+stats:()=>{const S=stats();return`<h1 style="font-size:2.2rem">Estadísticas</h1><div class="card"><p>Partidas jugadas: <b>${S.m}</b> · Mejor puntaje: <b>${S.best}</b></p><p>Victorias por jugador: ${S.w.map((x,i)=>`<b style="color:${COL[i]}">${SH[i]} ${x}</b>`).join(' ')}</p><p>Respuestas correctas: <b>${S.ok}</b> · Precisión: <b>${S.an?Math.round(100*S.ok/S.an):0}%</b></p><p>Robos exitosos: <b>${S.st}</b> · Poderes usados: <b>${S.pu}</b> · Remontadas: <b>${S.cb}</b></p><p>Ronda de Riesgo: <b>${S.rw}/${S.rp}</b> correctas · Racha de victorias más larga: <b>${S.bs}</b></p>
+<h2>Logros</h2>${ACH.map(([n,d])=>`<p>${S.ach[n]?'🏆':'🔒'} <b>${n}</b>: ${d}</p>`).join('')}<p class="sub" style="margin-top:10px">Los registros se guardan solo en este dispositivo y no se sincronizan.</p></div><div class="row">${bk}<button class="btn" data-a="reset">Borrar estadísticas</button></div>`}
+};
+function ctl(p){
+ if(G.tb&&!G.el.includes(p))return'<small>Fuera</small>';
+ if(st=='QUESTION_READY'&&G.wag){const mx=Math.max(0,G.sc[p]),o=(G.r==4?[0,50,100,200]:[0,25,50,100]).filter(v=>v<=mx);
+  return`<div class="opts">${o.map(v=>`<button class="bz ${G.wg[p]==v?'sel':''}" data-a="wg" data-p="${p}" data-v="${v}" aria-pressed="${G.wg[p]==v}">${v}</button>`).join('')}</div><small>${G.wg[p]?`Ganas +${G.wg[p]} / pierdes −${G.wg[p]}`:'Seguro: sin riesgo, sin ganancia'}</small>`}
+ if(G.mode=='buzz'&&(st=='BUZZER_OPEN'||st=='ANSWERING')){const t=G.tried.includes(p);return`<button class="bz" data-bz="${p}" ${st!='BUZZER_OPEN'||t?'disabled':''}>${t?'✖ INTENTÓ':G.cur==p?'RESPONDIENDO':'PULSA ['+esc(cfg.keys[p].toUpperCase())+']'}</button>`}
+ if(G.mode=='all'&&st=='ANSWERING')return G.ans[p]?'<b>🔒 Bloqueada</b>':`<div class="opts">${G.q.o.map((_,i)=>`<button class="bz" data-a="ap" data-p="${p}" data-i="${i}" aria-label="Jugador ${p+1} respuesta ${i+1}">${i+1}</button>`).join('')}</div>`;
+ if(st=='REVEAL'&&G.flash[p])return`<b>${G.flash[p]>0?'+':''}${G.flash[p]}</b>`;
+ return''}
+function drawG(){
+ if(st=='MATCH_RESULTS')return res();
+ const R=rk(),live=st=='BUZZER_OPEN'||st=='ANSWERING',q=G.q;
+ let h=`<div class="top"><b>${G.tb?'⚡ Muerte súbita':'Ronda '+(G.r+1)+' · '+RN[G.r]}</b><span>${G.tb?'':'P '+Math.min(G.qi+1,cfg.len)+'/'+cfg.len}</span><button class="btn" data-a="pause" ${live||st=='PAUSED'?'':'disabled'}>${st=='PAUSED'?'▶ Reanudar':'⏸ Pausa'}</button></div>`;
+ if(st=='ROUND_INTRO')h+=`<div class="q"><h2>Ronda ${G.r+1}: ${RN[G.r]}</h2><p class="qt">${RR[G.r]}</p><button class="btn pri" id="nx" data-a="nx">Iniciar ronda ▶</button></div>`;
+ else if(st=='ROUND_RESULTS')h+=`<div class="q"><h2>Posiciones tras ${RN[G.r]}</h2>${[0,1,2,3].sort((a,b)=>G.sc[b]-G.sc[a]).map(p=>`<p class="ln">${R[p]}. <b style="color:${COL[p]}">${SH[p]}</b> ${esc(G.nm[p])}: <b>${G.sc[p]}</b></p>`).join('')}<button class="btn pri" id="nx" data-a="nx">${G.qi>=cfg.len?'Resultado final ▶':'Siguiente ronda ▶'}</button></div>`;
+ else if(st=='PAUSED')h+=`<div class="q"><h2>Pausa</h2><p class="qt">La pregunta está oculta durante la pausa.</p><button class="btn pri" data-a="pause">▶ Reanudar</button> <button class="btn" data-a="quit">Salir al menú</button></div>`;
+ else{const rd=st=='QUESTION_READY',rv=st=='REVEAL';
+  h+=`<div class="q"><span class="tag">${q.c}</span>${G.ev?`<span class="tag ev">⚡ ${G.ev.n}</span>`:''}${G.wag?'<span class="tag">Apuesta</span>':''}${G.tried.length&&st=='BUZZER_OPEN'?'<span class="tag ev">¡ROBO!</span>':''}${G.ev?`<p>${G.ev.d}</p>`:''}`;
+  h+=rd?`<p class="qt">${G.wag?'Hagan sus apuestas. Se bloquean al empezar la pregunta.':'¡Prepárense!'}</p><button class="btn pri" id="nx" data-a="nx">¡Va! ▶</button>`:`<h2 class="qt">${esc(q.q)}</h2>`;
+  if(!rd){h+=`<div class="tm"><i id="bar"></i></div><div class="ans">${q.o.map((o,i)=>`<button class="a ${rv&&i==q.ok?'ok':''} ${(rv&&G.dead.includes(i))?'no':G.dead.includes(i)?'dead':''}" data-a="pk" data-i="${i}" ${G.mode=='buzz'&&st=='ANSWERING'&&!G.dead.includes(i)?'':'disabled'}>${i+1}. ${esc(o)}</button>`).join('')}</div>`;
+   h+=`<p style="margin-top:8px">${rv?'':st=='BUZZER_OPEN'?(G.tried.length?'¡Fallo! Los demás pueden robar, un intento cada uno.':'¡Pulsa! Teclas '+cfg.keys.map(k=>k.toUpperCase()).join(' ')+' o toca tu pulsador.'):G.mode=='buzz'?`<b>${esc(G.nm[G.cur])}</b> está respondiendo: toca una opción o pulsa 1–4.`:'Todos responden en su propio panel.'}</p>`}
+  if(rv)h+=`<p class="qt" style="font-size:1.2rem">Respuesta correcta: <b>${esc(q.o[q.ok])}</b></p><div class="bd">${G.bd.map(x=>`<div>${esc(x)}</div>`).join('')}</div><button class="btn pri" id="nx" data-a="nx">${(G.qi+1)%G.per==0&&!G.tb?'Resultados de la ronda ▶':'Siguiente ▶'}</button>`;
+  h+='</div>'}
+ h+=`<div class="pls ${G.ev&&G.ev.id=='blk'&&live?'blk':''}">${[0,1,2,3].map(p=>`<div class="pl ${G.cur==p&&st=='ANSWERING'&&G.mode=='buzz'?'act':''}" style="--c:${COL[p]}"><b>${G.cur==p&&st=='ANSWERING'&&G.mode=='buzz'?'🎤 ':''}${SH[p]} ${esc(G.nm[p])}</b><small>Puesto ${R.filter(x=>x==R[p]).length>1?'T':''}${R[p]}</small><div class="sc">${G.sc[p]}</div><div>${G.pu[p].map(t=>`<button class="chip" data-a="pu" data-p="${p}" data-t="${t}" ${canPu(p)?'':'disabled'} title="${PN[t][2]}" aria-label="${PN[t][1]}: ${PN[t][2]}">${PN[t][0]}</button>`).join('')}${Object.keys(G.arm?G.arm[p]:{}).map(t=>`<small>${PN[t][0]} activado</small>`).join('')}</div>${ctl(p)}</div>`).join('')}</div>`;
+ return h}
+function res(){const R=rk(),mx=Math.max(...G.sc),w=G.sc.map((s,i)=>s==mx?i:-1).filter(i=>i>=0);
+ return`<div style="text-align:center"><span class="tro">${w.length>1?'🤝':'🏆'}</span><h1 style="color:${w.length>1?'#fff':COL[w[0]]}">${w.length>1?'¡EMPATE!':'¡'+esc(G.nm[w[0]])+' GANA!'}</h1>${w.length>1?`<p class="sub">Victoria compartida: ${w.map(p=>esc(G.nm[p])).join(' & ')}</p>`:''}</div>
+<div class="card sw"><table><tr><th>#<th>Jugador<th>Puntos<th>✔<th>✖<th>Prec.<th>Poderes<th>Bono<th>Penal.</tr>${[0,1,2,3].sort((a,b)=>G.sc[b]-G.sc[a]).map(p=>{const s=G.st[p],n=s.ok+s.bad;return`<tr style="color:${COL[p]}"><td>${R[p]}<td>${SH[p]} ${esc(G.nm[p])}<td><b>${G.sc[p]}</b><td>${s.ok}<td>${s.bad}<td>${n?Math.round(100*s.ok/n):0}%<td>${s.pu}<td>+${s.bon}<td>−${s.pen}</tr>`}).join('')}</table></div>
+<div class="card"><h2>Logros</h2>${G.ach.length?G.ach.map(a=>`<p>🏆 <b>${a}</b></p>`).join(''):'<p>Ninguno en esta partida.</p>'}</div>
+<div class="row"><button class="btn pri" data-a="play">Jugar de nuevo</button><button class="btn" data-a="rematch">Revancha (mismas preguntas)</button><button class="btn" data-a="v" data-v="setup">Volver a configuración</button><button class="btn" data-a="v" data-v="menu">Menú principal</button></div>`}
+function draw(){document.body.classList.toggle('rm',!!cfg.rm||matchMedia('(prefers-reduced-motion:reduce)').matches);A.innerHTML=V=='game'?drawG():VW[V]()}
+function show(v){V=v;if(v=='menu')st='MENU';if(v=='setup')st='SETUP';scrollTo(0,0);draw()}
+function rdNames(){cfg.names=cfg.names.map((n,i)=>{const e=$('#n'+i);return e?(e.value.trim().slice(0,12)||'Jugador '+(i+1)):n})}
+/* input */
+A.addEventListener('pointerdown',e=>{const b=e.target.closest('[data-bz]');if(b&&!b.disabled){e.preventDefault();buzz(+b.dataset.bz,e.timeStamp)}});
+A.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;const d=b.dataset;
+ if(d.bz!==undefined){if(e.detail===0)buzz(+d.bz,e.timeStamp);return}
+ if(!d.a)return;if(V=='setup')rdNames();
+ switch(d.a){
+ case'v':if(V=='game'&&G)tStop();show(d.v);return;
+ case'tg':cfg[d.k]=cfg[d.k]?0:1;break;
+ case'set':cfg[d.k]=+d.v;break;
+ case'cat':{const i=cfg.cats.indexOf(d.v);if(i>=0){if(cfg.cats.length>1)cfg.cats.splice(i,1)}else cfg.cats.push(d.v);break}
+ case'play':mk(0);return;
+ case'rematch':mk(1);return;
+ case'nx':nxt();return;
+ case'pk':pick(+d.i);return;
+ case'ap':ansP(+d.p,+d.i);return;
+ case'wg':if(st=='QUESTION_READY')G.wg[+d.p]=+d.v;break;
+ case'pu':{const p=+d.p,t=d.t,i=G.pu[p].indexOf(t);if(!canPu(p)||i<0||G.arm[p][t])return;G.pu[p].splice(i,1);G.arm[p][t]=1;G.st[p].pu++;snd(880,.2);break}
+ case'pause':st=='PAUSED'?resumeG():pauseG();return;
+ case'quit':tStop();show('menu');return;
+ case'reset':if(confirm('¿Borrar todas las estadísticas y logros de este dispositivo?')){localStorage.removeItem('qc_st_es')}break;
+ }
+ sv('qc_cfg_es',cfg);draw()});
+A.addEventListener('input',e=>{const t=e.target;
+ if(t.id=='vol'){cfg.vol=+t.value;sv('qc_cfg_es',cfg);snd(600,.1)}
+ if(t.classList.contains('ky')){const v=t.value.toLowerCase(),i=+t.dataset.i;if(v&&!/[1-4p ]/.test(v)&&!cfg.keys.some((k,j)=>j!=i&&k==v)){cfg.keys[i]=v;sv('qc_cfg_es',cfg)}else if(v)t.value=cfg.keys[i]}
+ if(t.id&&t.id[0]=='n'&&V=='setup'){rdNames();sv('qc_cfg_es',cfg)}});
+addEventListener('keydown',e=>{if(e.repeat||e.ctrlKey||e.metaKey||e.altKey||/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)||V!='game'||!G)return;const k=e.key.toLowerCase();
+ if(st=='BUZZER_OPEN'&&cfg.keys.includes(k)){buzz(cfg.keys.indexOf(k),e.timeStamp);return}
+ if(st=='ANSWERING'&&G.mode=='buzz'&&/^[1-4]$/.test(k)){pick(+k-1);return}
+ if(k=='p'||k=='escape'){st=='PAUSED'?resumeG():pauseG();return}
+ if((k==' '||k=='enter')&&e.target===document.body&&$('#nx')){e.preventDefault();$('#nx').click()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&V=='game'&&G)pauseG()});
+draw();
+</script></body></html>
